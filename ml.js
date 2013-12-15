@@ -70,11 +70,12 @@
 			
 			// iterate all instances in the given trainingSet
 			for(var i = 0; i < trainingSet.size; i++) {
+				// for each weight
 				for(var j = 0; j < this.weights.length; j++) {
 					// compute delta_w_j
 					var delta_w_j = learningRate * (trainingSet.labels[i] - this.classify(trainingSet.instances[i])) * (j == 0 ? 1 : trainingSet.instances[i][j-1]);
 					
-					// updata w_j
+					// update w_j
 					this.weights[j] += delta_w_j;
 					
 					// found an incorrectly classified instance -> Then take another iteration
@@ -83,7 +84,38 @@
 			}
 		}
 	};
-	ml.nn.Perceptron.prototype.gradientDescent = function() {};
+	
+	ml.nn.Perceptron.prototype.gradientDescent = function(trainingSet, learningRate, acceptedErrorThreshold) {
+		this.assignRandomWeights();
+		
+		var squaredError = Number.MAX_VALUE;
+		
+		while(squaredError > acceptedErrorThreshold) {
+			// initialize all delta_w_i to zero
+			var delta_w = [];
+			for(var i = 0; i < this.weights.length; i++) delta_w.push(0);
+			
+			// iterate all instances in the given trainingSet
+			for(var i = 0; i < trainingSet.size; i++) {
+				// for each weight
+				for(var j = 0; j < this.weights.length; j++) {
+					// accumulate delta_w_j (learn update)
+					delta_w[j] += learningRate * (trainingSet.labels[i] - this.classify(trainingSet.instances[i])) * (j == 0 ? 1 : trainingSet.instances[i][j-1]);
+				}
+			}
+			
+			// update all w_i at the end of an iteration
+			for(var i = 0; i < delta_w.length; i++) this.weights[i] += delta_w[i];
+			
+			// compute new Error using squaredError function
+			squaredError = 0;
+			for(var i = 0; i < trainingSet.size; i++) {
+				squaredError += Math.pow((trainingSet.labels[i] - this.classify(trainingSet.instances[i])), 2);
+			}
+			squaredError /= 2;
+		}
+	};
+	
 	ml.nn.Perceptron.prototype.stochasticGradientDescent = function() {};
 
 	// complex types
@@ -94,6 +126,7 @@
 	window.ml = ml;
 })(window);
 
+// sample usage
 var trainingSet = new ml.TrainingSet();
 trainingSet.add([10,0,0], 1);
 trainingSet.add([5,3,-1], 1);
@@ -104,6 +137,7 @@ trainingSet.add([1,2,12], -1);
 trainingSet.add([0,0,30], -1);
 
 var p = new ml.nn.Perceptron(3);
-p.originalTraining(trainingSet, 0.1);
+//p.originalTraining(trainingSet, 0.1);
+p.gradientDescent(trainingSet, 0.1, 0.05);
 
 console.log("ready");
