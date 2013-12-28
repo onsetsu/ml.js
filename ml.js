@@ -198,8 +198,8 @@
 	
 	// pruning using reduced-error pruning.
 	ml.TreeLearner.prototype.pruneTree = function(decisionTree, pruningSet) {
+		// call recursively, so effectively starting at leaf nodes (bottom up pruning)
 		if (decisionTree instanceof ml.DecisionTree.InternalNode) {
-			// call recursively, so effectively starting at leaf nodes
 			var subSets = pruningSet.splitIntoSubsets(decisionTree.indexOfFeatureToSplit);
 			for(var featureValue in subSets) {
 				var subSet = subSets[featureValue];
@@ -214,11 +214,13 @@
 
 		var instances = pruningSet.getInstances();
 		for(var i in instances) {
+			// count number of correctly classified instances (to approximate accuracy)
+			// count for current tree as well as the majority class classifier
 			if(easierLabelledTree.classify(instances[i].input) == instances[i].output) correctlyClassifiedByMajorityClass++;
 			if(decisionTree.classify(instances[i].input) == instances[i].output) correctlyClassifiedByTree++;
 		}
 
-		console.log(correctlyClassifiedByMajorityClass, correctlyClassifiedByTree);
+		// If the majority class classifier has a higher accuracy, use that node to replace the current tree.
 		return correctlyClassifiedByMajorityClass >= correctlyClassifiedByTree ? easierLabelledTree : decisionTree;
 	};
 	
