@@ -4,6 +4,16 @@
 	var ml = {};
 	
 	/*
+	 * instance
+	 * 
+	 * represents a single instance (of the trainingSet)
+	 */
+	ml.Instance = function(instance, label) {
+		this.input = instance;
+		this.output = label;
+	};
+	
+	/*
 	 * trainingSet
 	 */
 	ml.TrainingSet = function() {
@@ -11,10 +21,7 @@
 	};
 	
 	ml.TrainingSet.prototype.add = function(instance, label) {
-		this.instances.push({
-			input: instance,
-			output: label
-		});
+		this.instances.push(new ml.Instance(instance, label));
 	};
 	
 	ml.TrainingSet.prototype.getInstances = function() {
