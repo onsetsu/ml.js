@@ -7,12 +7,10 @@
 	 * trainingSet
 	 */
 	ml.TrainingSet = function() {
-		this.size = 0;
 		this.instances = [];
 	};
 	
 	ml.TrainingSet.prototype.add = function(instance, label) {
-		this.size++;
 		this.instances.push({
 			input: instance,
 			output: label
@@ -24,15 +22,16 @@
 	};
 	
 	ml.TrainingSet.prototype.setInstances = function(instances) {
-		this.size = instances.length;
 		this.instances = instances;
 		
 		return this;
 	};
 	
 	ml.TrainingSet.prototype.getNumberOfInstances = function() {
-		return this.size;
+		return this.instances.length;
 	};
+	
+	// TRAINING SET UTILS
 	
 	// Split the TrainingSet into multiple TrainingSets using the discrete values of given feature.
 	ml.TrainingSet.prototype.splitIntoSubsets = function(featureIndex) {
@@ -46,6 +45,16 @@
 		}
 		
 		return rawSplit;
+	};
+	
+	// Returns the majority class of the TrainingSet.
+	ml.TrainingSet.prototype.getMajorityClass = function() {
+		return _.chain(this.getInstances())
+			.countBy("output")
+			.pairs()
+			.max(_.last)
+			.head()
+			.value()
 	};
 	
 	/*
@@ -71,13 +80,22 @@
 		this.children[keyValue] = child;
 	};
 	
+	// Classifies the given instance.
+	ml.DecisionTree.InternalNode.prototype.classify = function(instanceInput) {
+		return this.children[instanceInput[this.indexOfFeatureToSplit]].classify(instanceInput);
+	};
+	
 	ml.DecisionTree.LeafNode = function(label) {
 		this.label = label;
 	};
 	
-	ml.TreeLearner = function() {
-		
+	// Classifies the given instance.
+	ml.DecisionTree.LeafNode.prototype.classify = function(instanceInput) {
+		return this.label;
 	};
+	
+	// DECISION TREE LEARNER
+	ml.TreeLearner = function() {};
 	
 	ml.TreeLearner.impurityMeasurements = {};
 	
@@ -92,15 +110,10 @@
 	// Returns the most appropriate label for a set of data instances.
 	ml.TreeLearner.prototype.label = function(data) {
 		// i.e. return the label of the majority of instances.
-		return _.chain(data.getInstances())
-			.countBy("output")
-			.pairs()
-			.max(_.last)
-			.head()
-			.value()
+		return data.getMajorityClass();
 	};
 	
-	// Calculate impurity using ....
+	// Calculate impurity using square root of gini index as impurity measurement.
 	ml.TreeLearner.prototype.calculateImpurity = function(subSets) {
 		var totalNumberOfInstances = 0;
 		var impurity = 0;
@@ -168,16 +181,45 @@
 		// split into subsets
 		var subSets = data.splitIntoSubsets(s);
 		
-		console.log(data);
+		// iterate all subsets in the split
 		for(var i in subSets) {
 			var subSet = subSets[i];
 			if(subSet.getNumberOfInstances() != 0)
 				node.addChild(i, this.growTree(subSet, features));
 			else
+				// no instance in trainingSet matching this node
+				// make an arbitrary guess using the parents label
 				node.addChild(i, new ml.DecisionTree.LeafNode(this.label(data)));
 		}
+
 		// return node whose label is s
 		return node;
+	};
+	
+	// pruning using reduced-error pruning.
+	ml.TreeLearner.prototype.pruneTree = function(decisionTree, pruningSet) {
+		if (decisionTree instanceof ml.DecisionTree.InternalNode) {
+			// call recursively, so effectively starting at leaf nodes
+			var subSets = pruningSet.splitIntoSubsets(decisionTree.indexOfFeatureToSplit);
+			for(var featureValue in subSets) {
+				var subSet = subSets[featureValue];
+				var possiblyNewChild = this.pruneTree(decisionTree.children[featureValue], subSet);
+				decisionTree.addChild(featureValue, possiblyNewChild);
+			}
+		}
+
+		var correctlyClassifiedByMajorityClass = 0;
+		var correctlyClassifiedByTree = 0;
+		var easierLabelledTree = new ml.DecisionTree.LeafNode(pruningSet.getMajorityClass());
+
+		var instances = pruningSet.getInstances();
+		for(var i in instances) {
+			if(easierLabelledTree.classify(instances[i].input) == instances[i].output) correctlyClassifiedByMajorityClass++;
+			if(decisionTree.classify(instances[i].input) == instances[i].output) correctlyClassifiedByTree++;
+		}
+
+		console.log(correctlyClassifiedByMajorityClass, correctlyClassifiedByTree);
+		return correctlyClassifiedByMajorityClass >= correctlyClassifiedByTree ? easierLabelledTree : decisionTree;
 	};
 	
 	// make globally visible
@@ -185,7 +227,9 @@
 })(window);
 
 
-// sample usage
+/*
+ * 
+ */// sample usage
 var trainingSet = new ml.TrainingSet();
 trainingSet.add(["small","short","low"], 1);
 trainingSet.add(["small","short","medium"], 1);
@@ -216,4 +260,16 @@ var treeLearner = new ml.TreeLearner();
 var decisionTree = treeLearner.growTree(trainingSet, features);
 
 console.log(decisionTree);
+console.log(decisionTree.classify(["large","short","medium"]));
+
+// sample pruning using reduced-error pruning
+var pruningSet = new ml.TrainingSet();
+pruningSet.add(["small","short","low"], 1);
+pruningSet.add(["small","short","medium"], 1);
+pruningSet.add(["large","short","medium"], 1);
+pruningSet.add(["large","short","high"], -1);
+pruningSet.add(["large","long","high"], -1);
+var prunedTree = treeLearner.pruneTree(decisionTree, pruningSet);
+
+console.log(prunedTree);
 console.log("ready");
