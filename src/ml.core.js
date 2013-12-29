@@ -2,6 +2,30 @@
 var ml = {};
 
 /*
+ * Feature
+ * 
+ * Describes a feature type.
+ */
+ml.Feature = function(name) {
+	this.name = name;
+};
+
+ml.Feature.prototype.setDomain = function(domain) {
+	this.domain = domain;
+	
+	return this;
+};
+
+ml.Feature.Categorical = 0;
+ml.Feature.Continuous = 1;
+
+ml.Feature.prototype.setType = function(type) {
+	this.type = type;
+	
+	return this;
+};
+
+/*
  * instance
  * 
  * represents a single instance (of the trainingSet)

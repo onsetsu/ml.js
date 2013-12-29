@@ -12,18 +12,15 @@ trainingSet.add(["large","long","high"], -1);
 
 // FEATURES
 var features = [
-    {
-    	name: "abdominal girth",
-		domain: ["small", "large"]
-	},
-    {
-		name: "size",
-		domain: ["short", "long"]
-	},
-    {
-		name: "price",
-		domain: ["low", "medium", "high"]
-	}
+    new ml.Feature("abdominal girth")
+    	.setDomain(["small", "large"])
+    	.setType(ml.Feature.Categorical),
+    new ml.Feature("size")
+    	.setDomain(["short", "long"])
+    	.setType(ml.Feature.Categorical),
+    new ml.Feature("price")
+    	.setDomain(["low", "medium", "high"])
+    	.setType(ml.Feature.Categorical)
 ];
 
 // Learning
