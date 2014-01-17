@@ -26,7 +26,7 @@ ml.Feature.prototype.setType = function(type) {
 };
 
 /*
- * instance
+ * Instance
  * 
  * represents a single instance (of the trainingSet)
  */
@@ -36,7 +36,7 @@ ml.Instance = function(instance, label) {
 };
 
 /*
- * trainingSet
+ * TrainingSet
  */
 ml.TrainingSet = function() {
 	this.instances = [];
