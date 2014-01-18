@@ -41,6 +41,8 @@ ml.math.Vector.prototype.dotProduct = function(otherVector) {
 
 ml.math.Vector.prototype.print = function() {
 	console.log(this.values);
+	
+	return this;
 };
 
 /*
