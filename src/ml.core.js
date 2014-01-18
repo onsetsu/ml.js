@@ -86,3 +86,12 @@ ml.TrainingSet.prototype.getMajorityClass = function() {
 		.value();
 };
 
+/*
+ * Utility functions
+ */
+var sign = function(number) {
+	if(number > 0) return 1;
+	if(number < 0) return -1;
+	return 0;
+};
+
