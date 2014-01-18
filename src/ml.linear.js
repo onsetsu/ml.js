@@ -30,12 +30,9 @@ ml.BasicLinearClassifier.prototype.learn = function(trainingSet) {
 	p = p.scalarProduct(1/numberOfPositives);
 	n = n.scalarProduct(1/numberOfNegatives);
 
-	p.print();
-	n.print();
-	
 	this.w = p.add(n.scalarProduct(-1)).print();
 	this.t = (Math.pow(p.length(), 2) - Math.pow(n.length(), 2)) / 2;
-	console.log(this.t);
+
 	return this;
 };
 
