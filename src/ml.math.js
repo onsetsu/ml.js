@@ -19,6 +19,17 @@ ml.math.Vector.prototype.scalarProduct = function(scalar) {
 	}));
 };
 
+ml.math.Vector.prototype.add = function(otherVector) {
+	return new ml.math.Vector(
+			_.chain(this.values)
+				.zip(otherVector.values)
+				.map(function(elements) {
+					return elements[0] + elements[1];
+				})
+				.value()
+		);
+};
+
 ml.math.Vector.prototype.dotProduct = function(otherVector) {
 	return _.chain(this.values)
 		.zip(otherVector.values)
