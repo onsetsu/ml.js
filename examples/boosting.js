@@ -12,5 +12,8 @@ trainingSet.add([3,1], -1);
 
 var basicClassifier = new ml.EnhancedBasicLinearClassifier()
 	.learn(trainingSet);
+console.log("Basic", basicClassifier.classify([4,6]));
 
-console.log(basicClassifier.classify([4,6]));
+var ensembledClassifier = ml.Boosting(trainingSet, 3, ml.EnhancedBasicLinearClassifier);
+console.log("Ensemble", ensembledClassifier.classify([4,6]));
+
